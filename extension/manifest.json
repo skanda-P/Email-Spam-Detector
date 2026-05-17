@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Spam Shield – Email Detector",
+  "name": "Spam Guard",
   "version": "1.0.0",
-  "description": "Detects whether the currently open Gmail / Outlook email is spam using a local AI model.",
+  "description": "Analyzes Gmail and Outlook emails to detect spam using AI",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://mail.google.com/*",

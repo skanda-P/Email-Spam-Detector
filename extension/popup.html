@@ -6,183 +6,220 @@
 <title>Spam Shield</title>
 <style>
   :root {
-    --bg:      #0f1117;
-    --surface: #1a1d27;
-    --border:  #2a2d3e;
-    --text:    #e8eaf0;
-    --muted:   #8b8fa8;
+    --bg:      linear-gradient(135deg, #0f1117 0%, #1a1820 100%);
+    --bg-solid: #0f1117;
+    --surface: #161b24;
+    --surface-light: #1d2230;
+    --border:  #2d3142;
+    --text:    #e6eef5;
+    --text-secondary: #a8b0be;
     --accent:  #6c63ff;
-    --spam:    #ff4d4d;
-    --ham:     #22c55e;
-    --warn:    #f59e0b;
-    --radius:  12px;
+    --accent-alt: #8b5cf6;
+    --spam:    #ff5555;
+    --ham:     #2ecc71;
+    --warn:    #f39c12;
+    --radius:  14px;
+    --shadow:  0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    width: 340px;
-    min-height: 420px;
+    width: 360px;
+    min-height: 480px;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     font-size: 14px;
+    line-height: 1.5;
   }
 
   /* ── Header ── */
   header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px 18px 14px;
+    gap: 12px;
+    padding: 20px 20px 16px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
+    box-shadow: var(--shadow-sm);
   }
-  .logo { font-size: 24px; }
-  .title { font-size: 16px; font-weight: 700; letter-spacing: .3px; }
-  .subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .logo { font-size: 28px; } 
+  .title { font-size: 18px; font-weight: 800; letter-spacing: -.5px; } 
+  .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; }
 
   /* ── Settings row ── */
   .settings-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 18px;
-    background: var(--surface);
+    padding: 12px 20px;
+    background: var(--surface-light);
     border-bottom: 1px solid var(--border);
     font-size: 12px;
-    color: var(--muted);
+    color: var(--text-secondary);
+    font-weight: 600;
   }
   .settings-row input {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
     color: var(--text);
     font-size: 12px;
-    padding: 3px 8px;
-    width: 170px;
+    padding: 6px 10px;
+    width: 160px;
+    transition: all 0.2s ease;
   }
-  .settings-row input:focus { outline: none; border-color: var(--accent); }
+  .settings-row input:focus { 
+    outline: none; 
+    border-color: var(--accent); 
+    background: var(--bg-solid);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+  }
 
   /* ── Main body ── */
-  main { padding: 18px; }
+  main { padding: 22px 20px; }
 
   /* Scan button */
   #scanBtn {
     width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+    padding: 14px 16px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
     border: none;
-    border-radius: var(--radius);
+    border-radius: 10px;
     color: #fff;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: opacity .2s, transform .1s;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+    letter-spacing: 0.3px;
   }
-  #scanBtn:hover  { opacity: .9; }
-  #scanBtn:active { transform: scale(.98); }
-  #scanBtn:disabled { opacity: .5; cursor: not-allowed; }
+  #scanBtn:hover  { 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+  }
+  #scanBtn:active { transform: translateY(0); }
+  #scanBtn:disabled { 
+    opacity: 0.6; 
+    cursor: not-allowed;
+    transform: none;
+  }
 
   /* Result card */
   #resultCard {
-    margin-top: 16px;
+    margin-top: 18px;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     overflow: hidden;
     display: none;
+    box-shadow: var(--shadow-sm);
+    animation: slideIn 0.4s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .result-header {
-    padding: 14px 16px;
+    padding: 18px 18px 16px;
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 14px;
   }
-  .result-icon { font-size: 28px; }
-  .result-label { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
-  .result-sub   { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+  .result-icon { font-size: 32px; flex-shrink: 0; line-height: 1; }
+  .result-label { font-size: 20px; font-weight: 900; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .result-sub   { font-size: 13px; color: rgba(255,255,255,.8); font-weight: 500; }
 
-  .result-header.spam { background: linear-gradient(135deg,#7f1d1d,#991b1b); }
-  .result-header.ham  { background: linear-gradient(135deg,#14532d,#166534); }
+  .result-header.spam { background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%); }
+  .result-header.ham  { background: linear-gradient(135deg, #26a65b 0%, #1e8449 100%); }
 
   /* Probability bars */
-  .probs { padding: 14px 16px; background: var(--surface); }
-  .prob-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .probs { padding: 16px 18px; background: var(--surface); }
+  .prob-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
   .prob-row:last-child { margin-bottom: 0; }
-  .prob-name { width: 40px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .prob-name { width: 44px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
   .bar-track {
-    flex: 1; height: 8px; background: var(--bg);
-    border-radius: 99px; overflow: hidden;
+    flex: 1; height: 6px; background: rgba(255,255,255,.08);
+    border-radius: 99px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.2);
   }
   .bar-fill {
     height: 100%; border-radius: 99px;
-    transition: width .5s ease;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 8px currentColor;
   }
   .bar-fill.spam { background: var(--spam); }
   .bar-fill.ham  { background: var(--ham); }
-  .prob-pct { width: 40px; text-align: right; font-size: 12px; font-weight: 700; }
+  .prob-pct { width: 38px; text-align: right; font-size: 13px; font-weight: 800; }
 
   /* Snippet preview */
   .snippet-box {
-    margin-top: 12px;
-    padding: 10px 14px;
+    margin-top: 14px;
+    padding: 12px 14px;
     background: var(--surface);
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--muted);
-    max-height: 64px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-height: 70px;
     overflow: hidden;
-    line-height: 1.5;
+    line-height: 1.6;
+    border-left: 3px solid var(--accent);
+    animation: slideIn 0.4s ease;
   }
 
   /* Status / error */
   #status {
-    margin-top: 14px;
-    padding: 10px 14px;
-    border-radius: 8px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
     font-size: 13px;
     text-align: center;
     display: none;
+    font-weight: 500;
+    animation: slideIn 0.3s ease;
   }
-  #status.error   { background: #3b0000; color: #fca5a5; }
-  #status.loading { background: var(--surface); color: var(--muted); }
+  #status.error   { background: rgba(255, 85, 85, 0.15); color: #ff9999; border: 1px solid rgba(255, 85, 85, 0.3); }
+  #status.loading { background: var(--surface); color: var(--text-secondary); }
 
   /* Spinner */
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
-    width: 18px; height: 18px;
-    border: 3px solid rgba(255,255,255,.3);
+    width: 16px; height: 16px;
+    border: 2.5px solid rgba(255,255,255,.2);
     border-top-color: #fff;
     border-radius: 50%;
-    animation: spin .7s linear infinite;
+    animation: spin 0.8s linear infinite;
     display: none;
   }
+
+  /* Utility animations */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 </head>
 <body>
 
 <header>
-  <span class="logo">🛡️</span>
+  <span class="logo">�</span>
   <div>
-    <div class="title">Spam Shield</div>
-    <div class="subtitle">AI-powered email scanner</div>
+    <div class="title">Spam Guard</div>
+    <div class="subtitle">Smart email protection</div>
   </div>
 </header>
 
 <div class="settings-row">
-  <span>API Endpoint</span>
-  <input id="apiUrl" type="text" value="http://localhost:8000"/>
+  <span>🔗 API URL</span>
+  <input id="apiUrl" type="text" value="http://localhost:8000" placeholder="Backend URL"/>
 </div>
 
 <main>
   <button id="scanBtn">
     <span class="spinner" id="spinner"></span>
-    <span id="btnLabel">🔍 Scan This Email</span>
+    <span id="btnLabel">⚡ Scan Email</span>
   </button>
 
   <div id="resultCard">
@@ -195,12 +232,12 @@
     </div>
     <div class="probs">
       <div class="prob-row">
-        <span class="prob-name" style="color:var(--spam)">SPAM</span>
+        <span class="prob-name" style="color:var(--spam)">🚨 SPAM</span>
         <div class="bar-track"><div class="bar-fill spam" id="spamBar" style="width:0%"></div></div>
         <span class="prob-pct" id="spamPct" style="color:var(--spam)"></span>
       </div>
       <div class="prob-row">
-        <span class="prob-name" style="color:var(--ham)">HAM</span>
+        <span class="prob-name" style="color:var(--ham)">✅ SAFE</span>
         <div class="bar-track"><div class="bar-fill ham"  id="hamBar"  style="width:0%"></div></div>
         <span class="prob-pct" id="hamPct"  style="color:var(--ham)"></span>
       </div>

@@ -28,12 +28,12 @@ apiInput.addEventListener('change', () => {
 function setLoading(on) {
   scanBtn.disabled = on;
   spinner.style.display = on ? 'block' : 'none';
-  btnLabel.textContent  = on ? 'Scanning …' : '🔍 Scan This Email';
+  btnLabel.textContent = on ? 'Analyzing...' : '⚡ Scan Email';
 }
 
 function showStatus(msg, type = 'error') {
   statusDiv.textContent = msg;
-  statusDiv.className   = type;
+  statusDiv.className = type;
   statusDiv.style.display = 'block';
   resultCard.style.display = 'none';
   snippetDiv.style.display = 'none';
@@ -45,36 +45,34 @@ function showResult(data, snippet) {
 
   const isSpam = data.label === 'SPAM';
   const sp = Math.round(data.spam_probability * 100);
-  const hp = Math.round(data.ham_probability  * 100);
+  const hp = Math.round(data.ham_probability * 100);
 
   resultHeader.className = 'result-header ' + (isSpam ? 'spam' : 'ham');
-  resultIcon.textContent  = isSpam ? '🚨' : '✅';
-  resultLabel.textContent = isSpam ? 'SPAM DETECTED' : 'LOOKS SAFE';
-  resultSub.textContent   = isSpam
-    ? `${sp}% confidence this is spam`
-    : `${hp}% confidence this is legitimate`;
+  resultIcon.textContent = isSpam ? '🚨' : '✓';
+  resultLabel.textContent = isSpam ? 'SPAM DETECTED' : 'LOOKS GOOD';
+  resultSub.textContent = isSpam
+    ? `This looks like spam (${sp}% confidence)`
+    : `This email appears legitimate (${hp}% confident)`;
 
   spamBar.style.width = sp + '%';
-  hamBar.style.width  = hp + '%';
+  hamBar.style.width = hp + '%';
   spamPct.textContent = sp + '%';
-  hamPct.textContent  = hp + '%';
+  hamPct.textContent = hp + '%';
 
   if (snippet) {
-    snippetDiv.textContent   = '📄 ' + snippet.slice(0, 160).replace(/\s+/g, ' ') + '…';
+    snippetDiv.textContent = '📄 ' + snippet.slice(0, 150).replace(/\s+/g, ' ').trim() + '...';
     snippetDiv.style.display = 'block';
   }
 
-  // Alert for spam (only once per session using sessionStorage-equivalent)
   if (isSpam && sp >= 70) {
-    // Use chrome notifications if available
     chrome.permissions && chrome.permissions.contains &&
       chrome.permissions.contains({ permissions: ['notifications'] }, ok => {
         if (ok) {
           chrome.notifications && chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icons/icon48.png',
-            title: '🚨 Spam Detected!',
-            message: `This email is ${sp}% likely to be spam.`,
+            title: '🚨 Spam Alert!',
+            message: `Detected spam email (${sp}% confidence). Be careful!`,
           });
         }
       });
@@ -84,11 +82,10 @@ function showResult(data, snippet) {
 // ── Main scan flow ────────────────────────────────────────────────────────────
 scanBtn.addEventListener('click', async () => {
   setLoading(true);
-  statusDiv.style.display  = 'none';
+  statusDiv.style.display = 'none';
   resultCard.style.display = 'none';
   snippetDiv.style.display = 'none';
 
-  // 1. Get active tab
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   const supportedHosts = [
@@ -99,11 +96,10 @@ scanBtn.addEventListener('click', async () => {
   const url = new URL(tab.url);
   if (!supportedHosts.includes(url.hostname)) {
     setLoading(false);
-    showStatus('⚠️ Please open Gmail or Outlook first, then click Scan.', 'error');
+    showStatus('⚠️ Open Gmail or Outlook and try again', 'error');
     return;
   }
 
-  // 2. Inject content script (handles MV3 programmatic injection as fallback)
   try {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -111,24 +107,22 @@ scanBtn.addEventListener('click', async () => {
     });
   } catch (_) { /* already injected */ }
 
-  // 3. Extract email text via content script
   let emailText = '';
   try {
     const resp = await chrome.tabs.sendMessage(tab.id, { action: 'extractEmail' });
     emailText = (resp && resp.text) ? resp.text.trim() : '';
   } catch (err) {
     setLoading(false);
-    showStatus('❌ Could not read the email. Make sure one is open, then try again.');
+    showStatus('❌ Couldn\'t read the email. Make sure one is open.', 'error');
     return;
   }
 
   if (!emailText || emailText.length < 10) {
     setLoading(false);
-    showStatus('❌ No email content found. Open an email and try again.');
+    showStatus('❌ No email content found. Open an email first.', 'error');
     return;
   }
 
-  // 4. Call FastAPI backend
   const apiBase = (apiInput.value || 'http://localhost:8000').replace(/\/$/, '');
   try {
     const res = await fetch(`${apiBase}/predict`, {
@@ -139,7 +133,7 @@ scanBtn.addEventListener('click', async () => {
 
     if (!res.ok) {
       const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || `HTTP ${res.status}`);
+      throw new Error(errJson.detail || `Error ${res.status}`);
     }
 
     const data = await res.json();
@@ -149,9 +143,9 @@ scanBtn.addEventListener('click', async () => {
   } catch (err) {
     setLoading(false);
     if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-      showStatus('❌ Cannot reach the backend. Is the server running on ' + apiBase + '?');
+      showStatus('❌ Can\'t reach the server at ' + apiBase, 'error');
     } else {
-      showStatus('❌ ' + err.message);
+      showStatus('❌ ' + err.message, 'error');
     }
   }
 });

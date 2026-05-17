@@ -1,29 +1,22 @@
-// content.js – injected into Gmail and Outlook pages
-// Listens for messages from popup.js and replies with extracted email text.
+// content.js - extracts email from Gmail/Outlook
 
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-  if (request.action !== "extractEmail") return;
+  if (request.action !== 'extractEmail') return;
 
   const text = extractEmailText();
   sendResponse({ text });
-  return true; // keep channel open for async
+  return true;
 });
 
-/**
- * Try every known DOM pattern for Gmail and Outlook.
- * Returns the concatenated subject + body as a single string.
- */
 function extractEmailText() {
   const parts = [];
 
-  // ── Gmail ──────────────────────────────────────────────────────────────────
-  // Subject
+  // Try Gmail patterns
   const gmailSubject = document.querySelector(
     'h2.hP, [data-legacy-thread-id] .hP, [data-thread-id] .hP'
   );
   if (gmailSubject) parts.push(gmailSubject.innerText.trim());
 
-  // Body – newest open message first
   const gmailBodies = document.querySelectorAll(
     '.a3s.aiL, .ii.gt .a3s, [data-message-id] .a3s'
   );
@@ -32,7 +25,7 @@ function extractEmailText() {
     if (t) parts.push(t);
   });
 
-  // ── Outlook (live.com & office.com) ────────────────────────────────────────
+  // Try Outlook if Gmail didn't work
   if (parts.length === 0) {
     const olSubject = document.querySelector(
       '[aria-label="Message subject"] span, [class*="SubjectLine"], [class*="subject"]'
@@ -45,18 +38,21 @@ function extractEmailText() {
     if (olBody) parts.push(olBody.innerText.trim());
   }
 
-  // ── Fallback: largest visible <div> ────────────────────────────────────────
+  // Fallback: grab the largest text element
   if (parts.length === 0) {
     let best = null;
     let bestLen = 0;
-    document.querySelectorAll("div, article, section").forEach(el => {
+    document.querySelectorAll('div, article, section').forEach(el => {
       const style = window.getComputedStyle(el);
-      if (style.display === "none" || style.visibility === "hidden") return;
-      const len = (el.innerText || "").length;
-      if (len > bestLen) { bestLen = len; best = el; }
+      if (style.display === 'none' || style.visibility === 'hidden') return;
+      const len = (el.innerText || '').length;
+      if (len > bestLen) {
+        bestLen = len;
+        best = el;
+      }
     });
     if (best) parts.push(best.innerText.trim());
   }
 
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
