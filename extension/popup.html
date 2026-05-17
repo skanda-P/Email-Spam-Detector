@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spam Shield</title>
+<style>
+  :root {
+    --bg:      #0f1117;
+    --surface: #1a1d27;
+    --border:  #2a2d3e;
+    --text:    #e8eaf0;
+    --muted:   #8b8fa8;
+    --accent:  #6c63ff;
+    --spam:    #ff4d4d;
+    --ham:     #22c55e;
+    --warn:    #f59e0b;
+    --radius:  12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    width: 340px;
+    min-height: 420px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo { font-size: 24px; }
+  .title { font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+  .subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* ── Settings row ── */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .settings-row input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    padding: 3px 8px;
+    width: 170px;
+  }
+  .settings-row input:focus { outline: none; border-color: var(--accent); }
+
+  /* ── Main body ── */
+  main { padding: 18px; }
+
+  /* Scan button */
+  #scanBtn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity .2s, transform .1s;
+  }
+  #scanBtn:hover  { opacity: .9; }
+  #scanBtn:active { transform: scale(.98); }
+  #scanBtn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Result card */
+  #resultCard {
+    margin-top: 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    display: none;
+  }
+  .result-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .result-icon { font-size: 28px; }
+  .result-label { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
+  .result-sub   { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+
+  .result-header.spam { background: linear-gradient(135deg,#7f1d1d,#991b1b); }
+  .result-header.ham  { background: linear-gradient(135deg,#14532d,#166534); }
+
+  /* Probability bars */
+  .probs { padding: 14px 16px; background: var(--surface); }
+  .prob-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .prob-row:last-child { margin-bottom: 0; }
+  .prob-name { width: 40px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .bar-track {
+    flex: 1; height: 8px; background: var(--bg);
+    border-radius: 99px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 99px;
+    transition: width .5s ease;
+  }
+  .bar-fill.spam { background: var(--spam); }
+  .bar-fill.ham  { background: var(--ham); }
+  .prob-pct { width: 40px; text-align: right; font-size: 12px; font-weight: 700; }
+
+  /* Snippet preview */
+  .snippet-box {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    max-height: 64px;
+    overflow: hidden;
+    line-height: 1.5;
+  }
+
+  /* Status / error */
+  #status {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
+    display: none;
+  }
+  #status.error   { background: #3b0000; color: #fca5a5; }
+  #status.loading { background: var(--surface); color: var(--muted); }
+
+  /* Spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🛡️</span>
+  <div>
+    <div class="title">Spam Shield</div>
+    <div class="subtitle">AI-powered email scanner</div>
+  </div>
+</header>
+
+<div class="settings-row">
+  <span>API Endpoint</span>
+  <input id="apiUrl" type="text" value="http://localhost:8000"/>
+</div>
+
+<main>
+  <button id="scanBtn">
+    <span class="spinner" id="spinner"></span>
+    <span id="btnLabel">🔍 Scan This Email</span>
+  </button>
+
+  <div id="resultCard">
+    <div class="result-header" id="resultHeader">
+      <span class="result-icon" id="resultIcon"></span>
+      <div>
+        <div class="result-label" id="resultLabel"></div>
+        <div class="result-sub"  id="resultSub"></div>
+      </div>
+    </div>
+    <div class="probs">
+      <div class="prob-row">
+        <span class="prob-name" style="color:var(--spam)">SPAM</span>
+        <div class="bar-track"><div class="bar-fill spam" id="spamBar" style="width:0%"></div></div>
+        <span class="prob-pct" id="spamPct" style="color:var(--spam)"></span>
+      </div>
+      <div class="prob-row">
+        <span class="prob-name" style="color:var(--ham)">HAM</span>
+        <div class="bar-track"><div class="bar-fill ham"  id="hamBar"  style="width:0%"></div></div>
+        <span class="prob-pct" id="hamPct"  style="color:var(--ham)"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="snippet" class="snippet-box" style="display:none"></div>
+  <div id="status"></div>
+</main>
+
+<script src="popup.js"></script>
+</body>
+</html>

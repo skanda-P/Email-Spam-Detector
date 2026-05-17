@@ -1,0 +1,53 @@
+# ── Secrets & config ──────────────────────────────────────
+.env
+
+# ── Model weights (too large for git) ─────────────────────
+backend/models/*.pt
+backend/models/*.joblib
+backend/models/*.pkl
+backend/models/*.bin
+
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Docker ────────────────────────────────────────────────
+# (keep Dockerfile and docker-compose.yml — ignore runtime leftovers)
+docker-compose.override.yml
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editors ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
